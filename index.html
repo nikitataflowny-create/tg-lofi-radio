@@ -4,44 +4,142 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LoFi Radio</title>
+<style>
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: #fff;
+    overflow: hidden;
+}
+
+/* Видеофон */
+#bg-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+}
+
+/* Полупрозрачная панель */
+.container {
+    position: relative;
+    z-index: 1;
+    width: 90%;
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1 {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+select, button, input[type="range"] {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+}
+
+button {
+    cursor: pointer;
+    background-color: #ff6f61;
+    color: #fff;
+    transition: 0.3s;
+}
+
+button:hover {
+    background-color: #ff4b3a;
+}
+
+input[type="range"] {
+    width: 100%;
+}
+
+audio {
+    width: 100%;
+    margin: 10px 0;
+    border-radius: 10px;
+}
+</style>
 </head>
 <body>
-<h1 id="station-name">LoFi Beats</h1>
 
-<audio id="audio" controls>
-  <source src="https://stream.laut.fm/lofi" type="audio/mpeg">
-  Ваш браузер не поддерживает аудио.
-</audio>
+<video autoplay muted loop id="bg-video">
+    <source src="bg.mp4" type="video/mp4">
+    Ваш браузер не поддерживает видео.
+</video>
 
-<br><br>
+<div class="container">
+    <h1 id="station-name">LoFi Beats</h1>
 
-<label for="volume">Громкость:</label>
-<input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+    <select id="station-list">
+        <option value="https://stream.laut.fm/lofi">LoFi Beats</option>
+        <option value="https://stream.radioparadise.com/lofi-128">Radio Paradise LoFi</option>
+    </select>
 
-<br><br>
+    <audio id="audio" controls>
+        <source src="https://stream.laut.fm/lofi" type="audio/mpeg">
+        Ваш браузер не поддерживает аудио.
+    </audio>
 
-<button id="playPause">Play/Pause</button>
+    <label for="volume">Громкость:</label>
+    <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+
+    <button id="playPause">Play/Pause</button>
+</div>
 
 <script>
 const audio = document.getElementById('audio');
 const playPauseBtn = document.getElementById('playPause');
 const volumeSlider = document.getElementById('volume');
-
-playPauseBtn.addEventListener('click', () => {
-  if (audio.paused) {
-    audio.play();
-    playPauseBtn.textContent = "Pause";
-  } else {
-    audio.pause();
-    playPauseBtn.textContent = "Play";
-  }
-});
-
-volumeSlider.addEventListener('input', () => {
-  audio.volume = volumeSlider.value;
-});
+const stationList = document.getElementById('station-list');
+const stationName = document.getElementById('station-name');
 
 audio.volume = volumeSlider.value;
+
+// Play / Pause
+playPauseBtn.addEventListener('click', () => {
+    if (audio.paused) {
+        audio.play();
+        playPauseBtn.textContent = "Pause";
+    } else {
+        audio.pause();
+        playPauseBtn.textContent = "Play";
+    }
+});
+
+// Громкость
+volumeSlider.addEventListener('input', () => {
+    audio.volume = volumeSlider.value;
+});
+
+// Смена станции
+stationList.addEventListener('change', () => {
+    const selected = stationList.value;
+    audio.src = selected;
+    audio.play();
+    playPauseBtn.textContent = "Pause";
+    stationName.textContent = stationList.options[stationList.selectedIndex].text;
+});
+
+// Установка фонового цвета через Telegram WebApp API (чтобы точно не было белого)
+if (window.Telegram?.WebApp) {
+    Telegram.WebApp.backgroundColor = "#000000";
+    Telegram.WebApp.expand(); // разворачиваем WebApp на весь экран
+}
 </script>
+
 </body>
 </html>
