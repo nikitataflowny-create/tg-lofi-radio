@@ -1,50 +1,18 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LoFi Radio</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoFi Radio</title>
 </head>
 <body>
-  <h1 id="station-name">LoFi Beats</h1>
+<h1>LoFi Beats</h1>
 
-  <audio id="audio" controls>
-    <source src="https://stream.laut.fm/lofi" type="audio/mpeg">
-    Ваш браузер не поддерживает аудио.
-  </audio>
+<audio controls autoplay>
+  <source src="https://stream.laut.fm/lofi" type="audio/mpeg">
+  Ваш браузер не поддерживает аудио.
+</audio>
 
-  <br><br>
-
-  <label for="volume">Громкость:</label>
-  <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
-
-  <br><br>
-
-  <button id="playPause">Play/Pause</button>
-
-  <script>
-    const audio = document.getElementById('audio');
-    const playPauseBtn = document.getElementById('playPause');
-    const volumeSlider = document.getElementById('volume');
-
-    // Play / Pause
-    playPauseBtn.addEventListener('click', () => {
-      if (audio.paused) {
-        audio.play();
-        playPauseBtn.textContent = "Pause";
-      } else {
-        audio.pause();
-        playPauseBtn.textContent = "Play";
-      }
-    });
-
-    // Volume control
-    volumeSlider.addEventListener('input', () => {
-      audio.volume = volumeSlider.value;
-    });
-
-    // Set initial volume
-    audio.volume = volumeSlider.value;
-  </script>
+<p>Если вы видите этот текст, всё работает!</p>
 </body>
 </html>
