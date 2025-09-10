@@ -185,6 +185,171 @@
            font-size: 14px;
            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
        }
+
+       /* Статус подписки */
+       #subscription-status {
+           position: fixed;
+           top: 10px;
+           right: 10px;
+           background: rgba(255, 255, 255, 0.9);
+           padding: 5px 12px;
+           border-radius: 15px;
+           font-size: 12px;
+           color: #333;
+           z-index: 1000;
+           display: none;
+       }
+
+       /* Экран блокировки доступа */
+       #access-blocked {
+           position: fixed;
+           top: 0;
+           left: 0;
+           width: 100vw;
+           height: 100vh;
+           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+           display: none;
+           justify-content: center;
+           align-items: center;
+           z-index: 10000;
+           font-family: Arial, sans-serif;
+       }
+
+       .block-content {
+           background: rgba(255, 255, 255, 0.95);
+           border-radius: 20px;
+           padding: 30px;
+           text-align: center;
+           max-width: 400px;
+           margin: 20px;
+           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+       }
+
+       .block-icon {
+           font-size: 64px;
+           margin-bottom: 20px;
+       }
+
+       .block-content h2 {
+           color: #333;
+           margin: 0 0 10px 0;
+           font-size: 24px;
+           font-weight: 600;
+       }
+
+       .block-status {
+           color: #666;
+           font-size: 16px;
+           margin: 0 0 20px 0;
+       }
+
+       .block-description {
+           color: #555;
+           line-height: 1.5;
+           margin-bottom: 25px;
+       }
+
+       .subscription-benefits {
+           background: rgba(102, 126, 234, 0.1);
+           border-radius: 15px;
+           padding: 20px;
+           margin: 20px 0;
+       }
+
+       .subscription-benefits h3 {
+           margin: 0 0 15px 0;
+           color: #4c63d2;
+           font-size: 18px;
+       }
+
+       .subscription-benefits ul {
+           list-style: none;
+           padding: 0;
+           margin: 0;
+       }
+
+       .subscription-benefits li {
+           padding: 5px 0;
+           color: #555;
+       }
+
+       .subscription-options {
+           display: flex;
+           gap: 15px;
+           justify-content: center;
+           margin: 25px 0;
+       }
+
+       .option {
+           background: white;
+           border: 2px solid #e1e5e9;
+           border-radius: 12px;
+           padding: 15px;
+           min-width: 80px;
+           position: relative;
+           transition: all 0.3s ease;
+       }
+
+       .option.recommended {
+           border-color: #4c63d2;
+           transform: scale(1.05);
+       }
+
+       .save-badge {
+           position: absolute;
+           top: -8px;
+           left: 50%;
+           transform: translateX(-50%);
+           background: #4c63d2;
+           color: white;
+           font-size: 10px;
+           padding: 2px 8px;
+           border-radius: 10px;
+           font-weight: 600;
+       }
+
+       .price {
+           display: block;
+           font-size: 20px;
+           font-weight: bold;
+           color: #333;
+       }
+
+       .period {
+           font-size: 12px;
+           color: #666;
+       }
+
+       .save-text {
+           display: block;
+           font-size: 10px;
+           color: #4c63d2;
+           margin-top: 5px;
+       }
+
+       .return-btn {
+           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+           color: white;
+           border: none;
+           border-radius: 25px;
+           padding: 15px 30px;
+           font-size: 16px;
+           font-weight: 600;
+           cursor: pointer;
+           margin: 20px 0 10px 0;
+           transition: transform 0.2s ease;
+           min-width: 200px;
+       }
+
+       .return-btn:hover {
+           transform: translateY(-2px);
+       }
+
+       .referral-hint {
+           font-size: 14px;
+           color: #666;
+           margin: 15px 0 0 0;
+       }
        
        @media (max-width: 768px) {
            .mobile-note { 
@@ -214,6 +379,20 @@
                font-size: 14px;
                padding: 8px;
            }
+
+           .block-content {
+               margin: 10px;
+               padding: 20px;
+           }
+           
+           .subscription-options {
+               flex-direction: column;
+               align-items: center;
+           }
+           
+           .option {
+               width: 120px;
+           }
        }
        
        /* Дополнительные стили для лучшей совместимости */
@@ -228,40 +407,215 @@
    </style>
 </head>
 <body>
-   <video autoplay muted loop playsinline id="bg-video">
-       <source src="https://nikitataflowny-create.github.io/tg-lofi-radio/bg.mp4" type="video/mp4">
-       Ваш браузер не поддерживает видео.
-   </video>
+   <!-- Статус подписки -->
+   <div id="subscription-status"></div>
 
-   <div class="controls">
-       <h1 id="station-name">LoFi Radio</h1>
-       
-       <select id="station-select">
-           <option value="" disabled selected>Выберите станцию</option>
-       </select>
-       
-       <button id="play-pause" disabled>▶️ Play</button>
-       
-       <div class="loading" id="loading">Подключение...</div>
-       
-       <!-- Переключатель тем -->
-       <div class="themes-container">
-           <div class="themes-title">🎨 Темы оформления</div>
-           <div class="themes-grid" id="themes-grid">
-               <!-- Темы загрузятся через JavaScript -->
+   <!-- Экран блокировки доступа -->
+   <div id="access-blocked">
+       <div class="block-content">
+           <div class="block-icon">⏰</div>
+           <h2>Доступ ограничен</h2>
+           <p class="block-status" id="block-status-text">Доступ истек</p>
+           <p class="block-description">
+               Для продолжения прослушивания LoFi радио необходимо оформить подписку
+           </p>
+           
+           <div class="subscription-benefits">
+               <h3>🎵 Что входит в подписку:</h3>
+               <ul>
+                   <li>🎵 6 радиостанций без рекламы</li>
+                   <li>🎨 5 тем оформления</li>
+                   <li>🔊 Высокое качество звука</li>
+                   <li>⚡ Быстрая загрузка</li>
+               </ul>
            </div>
-       </div>
-       
-       <div class="volume-container">
-           <label for="volume">Громкость:</label>
-           <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
-           <div class="mobile-note">На телефоне используйте кнопки громкости</div>
+           
+           <div class="subscription-options">
+               <div class="option">
+                   <span class="price">70₽</span>
+                   <span class="period">/ месяц</span>
+               </div>
+               <div class="option recommended">
+                   <span class="save-badge">Выгодно!</span>
+                   <span class="price">180₽</span>
+                   <span class="period">/ 3 месяца</span>
+                   <span class="save-text">экономия 14%</span>
+               </div>
+           </div>
+           
+           <button onclick="returnToBot()" class="return-btn">
+               💳 Оформить подписку
+           </button>
+           
+           <p class="referral-hint">
+               💡 Или пригласите друзей и получите бонусные дни!
+           </p>
        </div>
    </div>
 
-   <audio id="audio" preload="none"></audio>
+   <!-- Основной контент радио -->
+   <div id="main-content">
+       <video autoplay muted loop playsinline id="bg-video">
+           <source src="https://nikitataflowny-create.github.io/tg-lofi-radio/bg.mp4" type="video/mp4">
+           Ваш браузер не поддерживает видео.
+       </video>
+
+       <div class="controls">
+           <h1 id="station-name">LoFi Radio</h1>
+           
+           <select id="station-select">
+               <option value="" disabled selected>Выберите станцию</option>
+           </select>
+           
+           <button id="play-pause" disabled>▶️ Play</button>
+           
+           <div class="loading" id="loading">Подключение...</div>
+           
+           <!-- Переключатель тем -->
+           <div class="themes-container">
+               <div class="themes-title">🎨 Темы оформления</div>
+               <div class="themes-grid" id="themes-grid">
+                   <!-- Темы загрузятся через JavaScript -->
+               </div>
+           </div>
+           
+           <div class="volume-container">
+               <label for="volume">Громкость:</label>
+               <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+               <div class="mobile-note">На телефоне используйте кнопки громкости</div>
+           </div>
+       </div>
+
+       <audio id="audio" preload="none"></audio>
+   </div>
 
    <script>
+       // Менеджер проверки подписки
+       class SubscriptionManager {
+           constructor() {
+               this.apiUrl = 'http://localhost:8080/api/check-subscription';
+               this.userId = null;
+               this.hasAccess = false;
+           }
+
+           async init() {
+               console.log('🔍 Initializing subscription check...');
+               
+               // Получаем данные пользователя из Telegram
+               if (window.Telegram && window.Telegram.WebApp) {
+                   const tg = window.Telegram.WebApp;
+                   tg.ready();
+                   
+                   // Получаем user_id из initDataUnsafe
+                   if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                       this.userId = tg.initDataUnsafe.user.id;
+                       console.log(`👤 User ID: ${this.userId}`);
+                   } else {
+                       console.warn('⚠️ No user data from Telegram WebApp');
+                       // Для тестирования используем тестового пользователя
+                       this.userId = 12345;
+                   }
+               } else {
+                   console.warn('⚠️ Not running in Telegram WebApp');
+                   // Для тестирования используем тестового пользователя
+                   this.userId = 12345;
+               }
+
+               // Проверяем подписку
+               await this.checkSubscription();
+           }
+
+           async checkSubscription() {
+               if (!this.userId) {
+                   console.error('❌ No user ID available');
+                   this.blockAccess('Ошибка авторизации');
+                   return;
+               }
+
+               try {
+                   console.log(`🔍 Checking subscription for user ${this.userId}...`);
+                   
+                   const response = await fetch(`${this.apiUrl}/${this.userId}`);
+                   const data = await response.json();
+                   
+                   console.log('📊 Subscription status:', data);
+                   
+                   if (data.has_access) {
+                       this.hasAccess = true;
+                       this.allowAccess(data);
+                   } else {
+                       this.hasAccess = false;
+                       this.blockAccess('Доступ истек', data);
+                   }
+                   
+               } catch (error) {
+                   console.error('❌ Error checking subscription:', error);
+                   // В случае ошибки API - разрешаем доступ (fallback)
+                   console.log('🔄 API error, allowing access as fallback');
+                   this.hasAccess = true;
+                   this.allowAccess({ status: 'api_error' });
+               }
+           }
+
+           allowAccess(data) {
+               console.log('✅ Access granted');
+               
+               // Показываем основной интерфейс
+               document.getElementById('main-content').style.display = 'block';
+               document.getElementById('access-blocked').style.display = 'none';
+               
+               // Обновляем статус в интерфейсе
+               this.updateStatusDisplay(data);
+           }
+
+           blockAccess(reason, data = {}) {
+               console.log('🚫 Access blocked:', reason);
+               
+               // Скрываем основной интерфейс
+               document.getElementById('main-content').style.display = 'none';
+               
+               // Показываем экран блокировки
+               this.showBlockScreen(reason, data);
+           }
+
+           showBlockScreen(reason, data) {
+               const blockScreen = document.getElementById('access-blocked');
+               const statusText = document.getElementById('block-status-text');
+               
+               const statusMessage = data.status === 'trial_expired' ? 'Триал истек' : 
+                                   data.status === 'subscription_expired' ? 'Подписка истекла' : 
+                                   'Доступ ограничен';
+
+               statusText.textContent = statusMessage;
+               blockScreen.style.display = 'flex';
+           }
+
+           updateStatusDisplay(data) {
+               const statusElement = document.getElementById('subscription-status');
+               if (data.status && data.status !== 'api_error') {
+                   const statusText = data.status === 'trial_active' ? 
+                       `🎁 Триал: ${data.days_left || 0} дней` :
+                       data.status === 'subscription_active' ? 
+                       `⭐ Подписка: ${data.days_left || 0} дней` :
+                       '';
+                   
+                   if (statusText) {
+                       statusElement.textContent = statusText;
+                       statusElement.style.display = 'block';
+                   }
+               }
+           }
+       }
+
+       // Функция возврата в бот (глобальная)
+       function returnToBot() {
+           if (window.Telegram && window.Telegram.WebApp) {
+               window.Telegram.WebApp.close();
+           } else {
+               alert('Возврат в бота...');
+           }
+       }
+
        // Конфигурация тем
        const themes = [
            {
@@ -343,9 +697,10 @@
        let currentStation = null;
        let currentTheme = 'city'; // По умолчанию
        let isPlaying = false;
+       let subscriptionManager;
 
        // Инициализация
-       function init() {
+       async function init() {
            // Инициализация Telegram WebApp
            if (window.Telegram?.WebApp) {
                window.Telegram.WebApp.ready();
@@ -353,11 +708,18 @@
                // Принудительно устанавливаем тему
                document.body.style.backgroundColor = window.Telegram.WebApp.backgroundColor || '#000';
            }
-           
-           loadStations();
-           loadThemes();
-           setupEventListeners();
-           loadSavedTheme();
+
+           // Инициализируем менеджер подписок ПЕРВЫМ
+           subscriptionManager = new SubscriptionManager();
+           await subscriptionManager.init();
+
+           // Если доступ разрешен - инициализируем радио
+           if (subscriptionManager.hasAccess) {
+               loadStations();
+               loadThemes();
+               setupEventListeners();
+               loadSavedTheme();
+           }
        }
 
        // Загрузка станций
