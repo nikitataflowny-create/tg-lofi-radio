@@ -13,7 +13,7 @@
            height: 100%; 
            overflow: hidden; 
            font-family: Arial, sans-serif; 
-           color: var(--tg-theme-text-color, #fff);
+           color: #fff;
            transition: all 0.3s ease;
        }
        
@@ -31,29 +31,26 @@
        
        /* Telegram тема (фон без видео) */
        .theme-telegram {
-           background: linear-gradient(135deg, 
-               var(--tg-theme-bg-color, #1a1a1a) 0%, 
-               var(--tg-theme-secondary-bg-color, #2a2a2a) 100%
-           );
+           background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
        }
        
        .controls { 
            position: relative; 
            z-index: 1; 
-           background: var(--tg-theme-bg-color, rgba(0,0,0,0.4));
-           backdrop-filter: blur(10px);
+           background: rgba(0,0,0,0.7);
            padding: 20px; 
            border-radius: 12px; 
            max-width: 400px; 
            margin: 50px auto; 
            text-align: center;
-           border: 1px solid var(--tg-theme-button-color, rgba(255,255,255,0.1));
+           border: 1px solid rgba(255,255,255,0.2);
+           box-shadow: 0 4px 20px rgba(0,0,0,0.3);
        }
        
        h1 { 
            margin-bottom: 20px; 
            font-size: 24px;
-           color: var(--tg-theme-text-color, #fff);
+           color: #fff;
        }
        
        select, button, input[type=range] { 
@@ -66,32 +63,34 @@
        }
        
        select { 
-           background-color: var(--tg-theme-button-color, #333); 
-           color: var(--tg-theme-button-text-color, #fff);
+           background-color: #333; 
+           color: #fff;
+           border: 1px solid #555;
        }
        
        button { 
            cursor: pointer; 
-           background-color: var(--tg-theme-button-color, #ff6f61); 
-           color: var(--tg-theme-button-text-color, white); 
+           background-color: #ff6f61; 
+           color: white; 
            font-weight: bold; 
            transition: transform 0.2s, background-color 0.2s; 
+           border: none;
        }
        
        button:hover { 
            transform: scale(1.05); 
-           opacity: 0.8;
+           background-color: #ff4b3e;
        }
        
        button:disabled { 
-           background-color: var(--tg-theme-hint-color, #666); 
+           background-color: #666; 
            cursor: not-allowed; 
            transform: none; 
        }
        
        input[type=range] { 
            -webkit-appearance: none; 
-           background: var(--tg-theme-hint-color, #444); 
+           background: #444; 
            height: 8px; 
        }
        
@@ -99,15 +98,24 @@
            -webkit-appearance: none; 
            width: 20px; 
            height: 20px; 
-           background: var(--tg-theme-button-color, #ff6f61); 
+           background: #ff6f61; 
            border-radius: 50%; 
            cursor: pointer; 
+       }
+       
+       input[type=range]::-moz-range-thumb {
+           width: 20px; 
+           height: 20px; 
+           background: #ff6f61; 
+           border-radius: 50%; 
+           cursor: pointer;
+           border: none;
        }
        
        .loading { 
            display: none; 
            font-size: 14px; 
-           color: var(--tg-theme-link-color, #ff6f61); 
+           color: #ff6f61; 
        }
        
        .volume-container { 
@@ -116,7 +124,7 @@
        
        .mobile-note { 
            font-size: 12px; 
-           color: var(--tg-theme-hint-color, #999); 
+           color: #999; 
            margin-top: 5px; 
            display: none; 
        }
@@ -125,14 +133,15 @@
        .themes-container {
            margin: 15px 0;
            padding: 10px;
-           background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.1));
+           background: rgba(255,255,255,0.1);
            border-radius: 8px;
+           border: 1px solid rgba(255,255,255,0.1);
        }
        
        .themes-title {
            font-size: 14px;
            margin-bottom: 10px;
-           color: var(--tg-theme-text-color, #fff);
+           color: #fff;
            font-weight: bold;
        }
        
@@ -146,8 +155,8 @@
            padding: 8px 12px;
            font-size: 12px;
            border-radius: 6px;
-           background: var(--tg-theme-button-color, rgba(255,255,255,0.2));
-           color: var(--tg-theme-button-text-color, #fff);
+           background: rgba(255,255,255,0.2);
+           color: #fff;
            border: 2px solid transparent;
            cursor: pointer;
            transition: all 0.2s ease;
@@ -156,12 +165,19 @@
        
        .theme-btn:hover {
            transform: scale(1.02);
+           background: rgba(255,255,255,0.3);
        }
        
        .theme-btn.active {
-           border-color: var(--tg-theme-link-color, #ff6f61);
-           background: var(--tg-theme-link-color, #ff6f61);
+           border-color: #ff6f61;
+           background: #ff6f61;
            color: white;
+       }
+       
+       /* Лейбл для громкости */
+       label {
+           color: #fff;
+           font-size: 14px;
        }
        
        @media (max-width: 768px) {
@@ -187,11 +203,26 @@
                font-size: 11px;
                padding: 6px 8px;
            }
+           
+           select, button {
+               font-size: 14px;
+               padding: 8px;
+           }
+       }
+       
+       /* Дополнительные стили для лучшей совместимости */
+       * {
+           -webkit-tap-highlight-color: transparent;
+       }
+       
+       select:focus, button:focus {
+           outline: 2px solid #ff6f61;
+           outline-offset: 2px;
        }
    </style>
 </head>
 <body>
-   <video autoplay muted loop id="bg-video">
+   <video autoplay muted loop playsinline id="bg-video">
        <source src="https://nikitataflowny-create.github.io/tg-lofi-radio/bg.mp4" type="video/mp4">
        Ваш браузер не поддерживает видео.
    </video>
@@ -200,7 +231,7 @@
        <h1 id="station-name">LoFi Radio</h1>
        
        <select id="station-select">
-           <option value="" disabled selected>Загрузка станций...</option>
+           <option value="" disabled selected>Выберите станцию</option>
        </select>
        
        <button id="play-pause" disabled>▶️ Play</button>
@@ -313,6 +344,8 @@
            if (window.Telegram?.WebApp) {
                window.Telegram.WebApp.ready();
                window.Telegram.WebApp.expand();
+               // Принудительно устанавливаем тему
+               document.body.style.backgroundColor = window.Telegram.WebApp.backgroundColor || '#000';
            }
            
            loadStations();
@@ -388,19 +421,29 @@
            }
 
            // Сохраняем выбор
-           localStorage.setItem('lofi-theme', themeId);
+           try {
+               localStorage.setItem('lofi-theme', themeId);
+           } catch (e) {
+               console.log('LocalStorage not available');
+           }
        }
 
        // Загрузка сохраненной темы
        function loadSavedTheme() {
-           const savedTheme = localStorage.getItem('lofi-theme');
-           if (savedTheme && themes.find(t => t.id === savedTheme)) {
-               // Находим кнопку темы и кликаем на неё
-               const themeButton = Array.from(document.querySelectorAll('.theme-btn'))
-                   .find(btn => btn.textContent === themes.find(t => t.id === savedTheme).name);
-               if (themeButton) {
-                   themeButton.click();
+           try {
+               const savedTheme = localStorage.getItem('lofi-theme');
+               if (savedTheme && themes.find(t => t.id === savedTheme)) {
+                   // Находим кнопку темы и кликаем на неё
+                   setTimeout(() => {
+                       const themeButton = Array.from(document.querySelectorAll('.theme-btn'))
+                           .find(btn => btn.textContent === themes.find(t => t.id === savedTheme).name);
+                       if (themeButton) {
+                           themeButton.click();
+                       }
+                   }, 500);
                }
+           } catch (e) {
+               console.log('LocalStorage not available');
            }
        }
 
