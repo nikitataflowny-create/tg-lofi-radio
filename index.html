@@ -5,23 +5,182 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LoFi Radio</title>
     <style>
-        body, html { margin:0; padding:0; width:100%; height:100%; overflow:hidden; font-family:Arial, sans-serif; color:#fff; }
-        #bg-video { position:fixed; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:-1; }
-        .controls { position:relative; z-index:1; background-color:rgba(0,0,0,0.4); padding:20px; border-radius:12px; max-width:400px; margin:50px auto; text-align:center; }
-        h1 { margin-bottom:20px; font-size:24px; }
-        select, button, input[type=range] { width:100%; margin:10px 0; padding:10px; border-radius:8px; border:none; font-size:16px; }
-        select { background-color:#333; color:#fff; }
-        button { cursor:pointer; background-color:#ff6f61; color:white; font-weight:bold; transition:transform 0.2s, background-color 0.2s; }
-        button:hover { transform:scale(1.05); background-color:#ff4b3e; }
-        button:disabled { background-color:#666; cursor:not-allowed; transform:none; }
-        input[type=range] { -webkit-appearance:none; background:#444; height:8px; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; background:#ff6f61; border-radius:50%; cursor:pointer; }
-        .station-info { margin:10px 0; font-size:14px; color:#ccc; }
-        .loading { display:none; font-size:14px; color:#ff6f61; }
-        .volume-container { margin:10px 0; }
-        .mobile-note { font-size:12px; color:#999; margin-top:5px; display:none; }
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            font-family: Arial, sans-serif; 
+            color: #fff;
+            /* Fallback фон если видео не загрузится */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+        }
+        
+        /* Адаптивный видеофон */
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            
+            /* Основная адаптивность */
+            object-fit: cover;           /* Заполняет весь экран, обрезая края если нужно */
+            object-position: center;     /* Центрирует видео */
+            
+            /* Дополнительная оптимизация */
+            pointer-events: none;        /* Видео не перехватывает клики */
+            user-select: none;          /* Нельзя выделить видео */
+            
+            /* Для старых браузеров */
+            min-width: 100%;
+            min-height: 100%;
+        }
+        
+        .controls { 
+            position: relative; 
+            z-index: 1; 
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px); /* Эффект размытия для современных браузеров */
+            padding: 20px; 
+            border-radius: 12px; 
+            max-width: 400px; 
+            margin: 50px auto; 
+            text-align: center;
+            
+            /* Дополнительный fallback фон */
+            background-image: linear-gradient(135deg, 
+                rgba(255, 111, 97, 0.1) 0%, 
+                rgba(0, 0, 0, 0.7) 50%, 
+                rgba(0, 0, 0, 0.9) 100%
+            );
+        }
+        
+        h1 { 
+            margin-bottom: 20px; 
+            font-size: 24px; 
+        }
+        
+        select, button, input[type=range] { 
+            width: 100%; 
+            margin: 10px 0; 
+            padding: 10px; 
+            border-radius: 8px; 
+            border: none; 
+            font-size: 16px; 
+        }
+        
+        select { 
+            background-color: #333; 
+            color: #fff; 
+        }
+        
+        button { 
+            cursor: pointer; 
+            background-color: #ff6f61; 
+            color: white; 
+            font-weight: bold; 
+            transition: transform 0.2s, background-color 0.2s; 
+        }
+        
+        button:hover { 
+            transform: scale(1.05); 
+            background-color: #ff4b3e; 
+        }
+        
+        button:disabled { 
+            background-color: #666; 
+            cursor: not-allowed; 
+            transform: none; 
+        }
+        
+        input[type=range] { 
+            -webkit-appearance: none; 
+            background: #444; 
+            height: 8px; 
+        }
+        
+        input[type=range]::-webkit-slider-thumb { 
+            -webkit-appearance: none; 
+            width: 20px; 
+            height: 20px; 
+            background: #ff6f61; 
+            border-radius: 50%; 
+            cursor: pointer; 
+        }
+        
+        .station-info { 
+            margin: 10px 0; 
+            font-size: 14px; 
+            color: #ccc; 
+        }
+        
+        .loading { 
+            display: none; 
+            font-size: 14px; 
+            color: #ff6f61; 
+        }
+        
+        .volume-container { 
+            margin: 10px 0; 
+        }
+        
+        .mobile-note { 
+            font-size: 12px; 
+            color: #999; 
+            margin-top: 5px; 
+            display: none; 
+        }
+        
+        /* Улучшения для мобильных устройств */
         @media (max-width: 768px) {
-            .mobile-note { display:block; }
+            #bg-video {
+                /* На мобильных может быть проблема с autoplay */
+                object-fit: cover;
+                object-position: center center;
+                
+                /* Оптимизация производительности на мобильных */
+                will-change: transform;
+                transform: translateZ(0); /* Аппаратное ускорение */
+            }
+            
+            .mobile-note { 
+                display: block; 
+            }
+            
+            .controls {
+                margin: 20px auto;
+                max-width: 350px;
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+        }
+        
+        /* Улучшения для больших экранов */
+        @media (min-width: 1920px) {
+            #bg-video {
+                /* На больших экранах лучше центрировать */
+                object-position: center center;
+            }
+            
+            .controls {
+                max-width: 500px;
+                padding: 30px;
+            }
+        }
+        
+        /* Планшетные устройства */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .controls {
+                max-width: 450px;
+                margin: 40px auto;
+            }
         }
     </style>
 </head>
@@ -118,6 +277,22 @@
         function init() {
             loadStations();
             setupEventListeners();
+            optimizeForDevice();
+        }
+
+        // Оптимизация для устройства
+        function optimizeForDevice() {
+            // Дополнительная оптимизация для мобильных
+            if (isMobile) {
+                // Уменьшаем качество видео на слабых устройствах
+                const video = document.getElementById('bg-video');
+                video.setAttribute('playsinline', 'true'); // Для iOS
+                
+                // Попытка принудительного запуска видео на мобильных
+                video.play().catch(e => {
+                    console.log('Autoplay blocked on mobile:', e);
+                });
+            }
         }
 
         // Загрузка станций в select
@@ -127,7 +302,7 @@
             stations.forEach(station => {
                 const option = document.createElement('option');
                 option.value = station.id;
-                option.textContent = station.name; // Убрали скобки с жанром
+                option.textContent = station.name;
                 option.dataset.station = JSON.stringify(station);
                 stationSelect.appendChild(option);
             });
@@ -159,7 +334,6 @@
 
         // Обновление громкости
         function updateVolume() {
-            // На мобильных устройствах volume может не работать
             try {
                 audio.volume = volumeSlider.value;
             } catch (e) {
