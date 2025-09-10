@@ -1,145 +1,202 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LoFi Radio</title>
-<style>
-html, body {
-    height: 100%;
-    margin: 0;
-    font-family: Arial, sans-serif;
-    color: #fff;
-    overflow: hidden;
-}
-
-/* Видеофон */
-#bg-video {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: -1;
-}
-
-/* Полупрозрачная панель */
-.container {
-    position: relative;
-    z-index: 1;
-    width: 90%;
-    max-width: 400px;
-    margin: 50px auto;
-    padding: 20px;
-    background: rgba(0,0,0,0.6);
-    border-radius: 15px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-h1 {
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-select, button, input[type="range"] {
-    margin: 10px 0;
-    padding: 10px;
-    border-radius: 10px;
-    border: none;
-    font-size: 16px;
-}
-
-button {
-    cursor: pointer;
-    background-color: #ff6f61;
-    color: #fff;
-    transition: 0.3s;
-}
-
-button:hover {
-    background-color: #ff4b3a;
-}
-
-input[type="range"] {
-    width: 100%;
-}
-
-audio {
-    width: 100%;
-    margin: 10px 0;
-    border-radius: 10px;
-}
-</style>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>LoFi Radio</title>
+   <style>
+       body, html { margin:0; padding:0; width:100%; height:100%; overflow:hidden; font-family:Arial, sans-serif; color:#fff; }
+       #bg-video { position:fixed; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:-1; }
+       .controls { position:relative; z-index:1; background-color:rgba(0,0,0,0.4); padding:20px; border-radius:12px; max-width:400px; margin:50px auto; text-align:center; }
+       h1 { margin-bottom:20px; font-size:24px; }
+       select, button, input[type=range] { width:100%; margin:10px 0; padding:10px; border-radius:8px; border:none; font-size:16px; }
+       select { background-color:#333; color:#fff; }
+       button { cursor:pointer; background-color:#ff6f61; color:white; font-weight:bold; transition:transform 0.2s, background-color 0.2s; }
+       button:hover { transform:scale(1.05); background-color:#ff4b3e; }
+       button:disabled { background-color:#666; cursor:not-allowed; transform:none; }
+       input[type=range] { -webkit-appearance:none; background:#444; height:8px; }
+       input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; background:#ff6f61; border-radius:50%; cursor:pointer; }
+       .station-info { margin:10px 0; font-size:14px; color:#ccc; }
+       .loading { display:none; font-size:14px; color:#ff6f61; }
+   </style>
 </head>
 <body>
+   <video autoplay muted loop id="bg-video">
+       <source src="https://nikitataflowny-create.github.io/tg-lofi-radio/bg.mp4" type="video/mp4">
+       Ваш браузер не поддерживает видео.
+   </video>
 
-<video autoplay muted loop id="bg-video">
-    <source src="bg.mp4" type="video/mp4">
-    Ваш браузер не поддерживает видео.
-</video>
+   <div class="controls">
+       <h1 id="station-name">LoFi Radio</h1>
+       <div class="station-info" id="station-info">Выберите станцию</div>
+       
+       <select id="station-select">
+           <option value="" disabled selected>Загрузка станций...</option>
+       </select>
+       
+       <button id="play-pause" disabled>▶️ Play</button>
+       
+       <div class="loading" id="loading">Подключение...</div>
+       
+       <label for="volume">Громкость:</label>
+       <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+   </div>
 
-<div class="container">
-    <h1 id="station-name">LoFi Beats</h1>
+   <audio id="audio" preload="none"></audio>
 
-    <select id="station-list">
-        <option value="https://stream.laut.fm/lofi">LoFi Beats</option>
-        <option value="https://stream.radioparadise.com/lofi-128">Radio Paradise LoFi</option>
-    </select>
+   <script>
+       // Конфигурация станций
+       const stations = [
+           {
+               id: 1,
+               name: "Beats",
+               url: "https://stream.laut.fm/lofi",
+               genre: "lofi",
+               description: "Классический LoFi Hip-Hop для учебы и работы"
+           },
+           {
+               id: 2,
+               name: "24/7",
+               url: "https://ec3.yesstreaming.net:3755/stream",
+               genre: "lofi",
+               description: "Круглосуточный LoFi поток для релаксации"
+           },
+           {
+               id: 3,
+               name: "Chill",
+               url: "https://chill.radioca.st/stream",
+               genre: "chillhop",
+               description: "Расслабляющий ChillHop и LoFi микс"
+           },
+           {
+               id: 4,
+               name: "ChillOut",
+               url: "https://stream.laut.fm/chillout",
+               genre: "chillout",
+               description: "Ambient и ChillOut для концентрации"
+           },
+           {
+               id: 5,
+               name: "Live",
+               url: "https://live.lofiradio.ru/lofi_mp3_128",
+               genre: "lofi",
+               description: "Российский LoFi поток 128kbps"
+           },
+           {
+               id: 6,
+               name: "LoF",
+               url: "https://play.lofiradio.ru:8000/mp3_320",
+               genre: "lofi",
+               description: "Высокое качество LoFi 320kbps"
+           }
+       ];
 
-    <audio id="audio" controls>
-        <source src="https://stream.laut.fm/lofi" type="audio/mpeg">
-        Ваш браузер не поддерживает аудио.
-    </audio>
+       // Элементы DOM
+       const audio = document.getElementById('audio');
+       const playPauseBtn = document.getElementById('play-pause');
+       const volumeSlider = document.getElementById('volume');
+       const stationSelect = document.getElementById('station-select');
+       const stationName = document.getElementById('station-name');
+       const stationInfo = document.getElementById('station-info');
+       const loading = document.getElementById('loading');
 
-    <label for="volume">Громкость:</label>
-    <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+       let currentStation = null;
+       let isPlaying = false;
 
-    <button id="playPause">Play/Pause</button>
-</div>
+       // Инициализация
+       function init() {
+           loadStations();
+           setupEventListeners();
+       }
 
-<script>
-const audio = document.getElementById('audio');
-const playPauseBtn = document.getElementById('playPause');
-const volumeSlider = document.getElementById('volume');
-const stationList = document.getElementById('station-list');
-const stationName = document.getElementById('station-name');
+       // Загрузка станций в select
+       function loadStations() {
+           stationSelect.innerHTML = '<option value="" disabled selected>Выберите станцию</option>';
+           
+           stations.forEach(station => {
+               const option = document.createElement('option');
+               option.value = station.id;
+               option.textContent = `${station.name} (${station.genre})`;
+               option.dataset.station = JSON.stringify(station);
+               stationSelect.appendChild(option);
+           });
+       }
 
-audio.volume = volumeSlider.value;
+       // Настройка обработчиков событий
+       function setupEventListeners() {
+           playPauseBtn.addEventListener('click', togglePlayPause);
+           volumeSlider.addEventListener('input', updateVolume);
+           stationSelect.addEventListener('change', changeStation);
+           
+           audio.addEventListener('loadstart', () => showLoading(true));
+           audio.addEventListener('loadeddata', () => showLoading(false));
+           audio.addEventListener('error', handleAudioError);
+           audio.addEventListener('play', () => updatePlayButton(true));
+           audio.addEventListener('pause', () => updatePlayButton(false));
+       }
 
-// Play / Pause
-playPauseBtn.addEventListener('click', () => {
-    if (audio.paused) {
-        audio.play();
-        playPauseBtn.textContent = "Pause";
-    } else {
-        audio.pause();
-        playPauseBtn.textContent = "Play";
-    }
-});
+       // Переключение воспроизведения
+       function togglePlayPause() {
+           if (!currentStation) return;
 
-// Громкость
-volumeSlider.addEventListener('input', () => {
-    audio.volume = volumeSlider.value;
-});
+           if (audio.paused) {
+               audio.play().catch(handleAudioError);
+           } else {
+               audio.pause();
+           }
+       }
 
-// Смена станции
-stationList.addEventListener('change', () => {
-    const selected = stationList.value;
-    audio.src = selected;
-    audio.play();
-    playPauseBtn.textContent = "Pause";
-    stationName.textContent = stationList.options[stationList.selectedIndex].text;
-});
+       // Обновление громкости
+       function updateVolume() {
+           audio.volume = volumeSlider.value;
+       }
 
-// Установка фонового цвета через Telegram WebApp API (чтобы точно не было белого)
-if (window.Telegram?.WebApp) {
-    Telegram.WebApp.backgroundColor = "#000000";
-    Telegram.WebApp.expand(); // разворачиваем WebApp на весь экран
-}
-</script>
+       // Смена станции
+       function changeStation() {
+           const selectedOption = stationSelect.selectedOptions[0];
+           if (!selectedOption) return;
 
+           currentStation = JSON.parse(selectedOption.dataset.station);
+           
+           // Обновляем интерфейс
+           stationName.textContent = currentStation.name;
+           stationInfo.textContent = currentStation.description;
+           
+           // Останавливаем текущее воспроизведение
+           audio.pause();
+           
+           // Загружаем новую станцию
+           audio.src = currentStation.url;
+           audio.load();
+           
+           // Включаем кнопку воспроизведения
+           playPauseBtn.disabled = false;
+           
+           // Автоматически начинаем воспроизведение
+           audio.play().catch(handleAudioError);
+       }
+
+       // Показать/скрыть индикатор загрузки
+       function showLoading(show) {
+           loading.style.display = show ? 'block' : 'none';
+       }
+
+       // Обновление кнопки воспроизведения
+       function updatePlayButton(playing) {
+           isPlaying = playing;
+           playPauseBtn.textContent = playing ? '⏸️ Pause' : '▶️ Play';
+       }
+
+       // Обработка ошибок аудио
+       function handleAudioError(error) {
+           console.error('Audio error:', error);
+           showLoading(false);
+           updatePlayButton(false);
+           stationInfo.textContent = 'Ошибка загрузки станции';
+       }
+
+       // Запуск приложения
+       init();
+   </script>
 </body>
 </html>
