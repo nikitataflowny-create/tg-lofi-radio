@@ -4,24 +4,195 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LoFi Radio</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body, html { margin:0; padding:0; width:100%; height:100%; overflow:hidden; font-family:Arial, sans-serif; color:#fff; }
-        #bg-video { position:fixed; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:-1; }
-        .controls { position:relative; z-index:1; background-color:rgba(0,0,0,0.4); padding:20px; border-radius:12px; max-width:400px; margin:50px auto; text-align:center; }
-        h1 { margin-bottom:20px; font-size:24px; }
-        select, button, input[type=range] { width:100%; margin:10px 0; padding:10px; border-radius:8px; border:none; font-size:16px; }
-        select { background-color:#333; color:#fff; }
-        button { cursor:pointer; background-color:#ff6f61; color:white; font-weight:bold; transition:transform 0.2s, background-color 0.2s; }
-        button:hover { transform:scale(1.05); background-color:#ff4b3e; }
-        button:disabled { background-color:#666; cursor:not-allowed; transform:none; }
-        input[type=range] { -webkit-appearance:none; background:#444; height:8px; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; background:#ff6f61; border-radius:50%; cursor:pointer; }
-        .station-info { margin:10px 0; font-size:14px; color:#ccc; }
-        .loading { display:none; font-size:14px; color:#ff6f61; }
-        .volume-container { margin:10px 0; }
-        .mobile-note { font-size:12px; color:#999; margin-top:5px; display:none; }
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            font-family: Arial, sans-serif; 
+            color: var(--tg-theme-text-color, #fff);
+            transition: all 0.3s ease;
+        }
+        
+        /* Видеофон */
+        #bg-video { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            z-index: -1;
+            transition: opacity 0.5s ease;
+        }
+        
+        /* Telegram тема (фон без видео) */
+        .theme-telegram {
+            background: linear-gradient(135deg, 
+                var(--tg-theme-bg-color, #1a1a1a) 0%, 
+                var(--tg-theme-secondary-bg-color, #2a2a2a) 100%
+            );
+        }
+        
+        .controls { 
+            position: relative; 
+            z-index: 1; 
+            background: var(--tg-theme-bg-color, rgba(0,0,0,0.4));
+            backdrop-filter: blur(10px);
+            padding: 20px; 
+            border-radius: 12px; 
+            max-width: 400px; 
+            margin: 50px auto; 
+            text-align: center;
+            border: 1px solid var(--tg-theme-button-color, rgba(255,255,255,0.1));
+        }
+        
+        h1 { 
+            margin-bottom: 20px; 
+            font-size: 24px;
+            color: var(--tg-theme-text-color, #fff);
+        }
+        
+        select, button, input[type=range] { 
+            width: 100%; 
+            margin: 10px 0; 
+            padding: 10px; 
+            border-radius: 8px; 
+            border: none; 
+            font-size: 16px; 
+        }
+        
+        select { 
+            background-color: var(--tg-theme-button-color, #333); 
+            color: var(--tg-theme-button-text-color, #fff);
+        }
+        
+        button { 
+            cursor: pointer; 
+            background-color: var(--tg-theme-button-color, #ff6f61); 
+            color: var(--tg-theme-button-text-color, white); 
+            font-weight: bold; 
+            transition: transform 0.2s, background-color 0.2s; 
+        }
+        
+        button:hover { 
+            transform: scale(1.05); 
+            opacity: 0.8;
+        }
+        
+        button:disabled { 
+            background-color: var(--tg-theme-hint-color, #666); 
+            cursor: not-allowed; 
+            transform: none; 
+        }
+        
+        input[type=range] { 
+            -webkit-appearance: none; 
+            background: var(--tg-theme-hint-color, #444); 
+            height: 8px; 
+        }
+        
+        input[type=range]::-webkit-slider-thumb { 
+            -webkit-appearance: none; 
+            width: 20px; 
+            height: 20px; 
+            background: var(--tg-theme-button-color, #ff6f61); 
+            border-radius: 50%; 
+            cursor: pointer; 
+        }
+        
+        .station-info { 
+            margin: 10px 0; 
+            font-size: 14px; 
+            color: var(--tg-theme-hint-color, #ccc); 
+        }
+        
+        .loading { 
+            display: none; 
+            font-size: 14px; 
+            color: var(--tg-theme-link-color, #ff6f61); 
+        }
+        
+        .volume-container { 
+            margin: 10px 0; 
+        }
+        
+        .mobile-note { 
+            font-size: 12px; 
+            color: var(--tg-theme-hint-color, #999); 
+            margin-top: 5px; 
+            display: none; 
+        }
+        
+        /* Переключатель тем */
+        .themes-container {
+            margin: 15px 0;
+            padding: 10px;
+            background: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.1));
+            border-radius: 8px;
+        }
+        
+        .themes-title {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: var(--tg-theme-text-color, #fff);
+            font-weight: bold;
+        }
+        
+        .themes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        
+        .theme-btn {
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+            background: var(--tg-theme-button-color, rgba(255,255,255,0.2));
+            color: var(--tg-theme-button-text-color, #fff);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 2px;
+        }
+        
+        .theme-btn:hover {
+            transform: scale(1.02);
+        }
+        
+        .theme-btn.active {
+            border-color: var(--tg-theme-link-color, #ff6f61);
+            background: var(--tg-theme-link-color, #ff6f61);
+            color: white;
+        }
+        
         @media (max-width: 768px) {
-            .mobile-note { display:block; }
+            .mobile-note { 
+                display: block; 
+            }
+            
+            .controls {
+                margin: 20px auto;
+                max-width: 350px;
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            .themes-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .theme-btn {
+                font-size: 11px;
+                padding: 6px 8px;
+            }
         }
     </style>
 </head>
@@ -43,6 +214,14 @@
         
         <div class="loading" id="loading">Подключение...</div>
         
+        <!-- Переключатель тем -->
+        <div class="themes-container">
+            <div class="themes-title">🎨 Темы оформления</div>
+            <div class="themes-grid" id="themes-grid">
+                <!-- Темы загрузятся через JavaScript -->
+            </div>
+        </div>
+        
         <div class="volume-container">
             <label for="volume">Громкость:</label>
             <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
@@ -53,6 +232,34 @@
     <audio id="audio" preload="none"></audio>
 
     <script>
+        // Конфигурация тем
+        const themes = [
+            {
+                id: 'city',
+                name: '1',
+                video: 'bg.mp4',
+                description: 'Тема 1'
+            },
+            {
+                id: 'studio',
+                name: '2',
+                video: 'video2.mp4',
+                description: 'Тема 2'
+            },
+            {
+                id: 'room',
+                name: '3',
+                video: 'video3.mp4',
+                description: 'Тема 3'
+            },
+            {
+                id: 'telegram',
+                name: 'Telegram',
+                video: null,
+                description: 'Цвета из вашего Telegram'
+            }
+        ];
+
         // Конфигурация станций
         const stations = [
             {
@@ -100,6 +307,7 @@
         ];
 
         // Элементы DOM
+        const video = document.getElementById('bg-video');
         const audio = document.getElementById('audio');
         const playPauseBtn = document.getElementById('play-pause');
         const volumeSlider = document.getElementById('volume');
@@ -107,20 +315,27 @@
         const stationName = document.getElementById('station-name');
         const stationInfo = document.getElementById('station-info');
         const loading = document.getElementById('loading');
+        const themesGrid = document.getElementById('themes-grid');
 
         let currentStation = null;
+        let currentTheme = 'city'; // По умолчанию
         let isPlaying = false;
-
-        // Проверка мобильного устройства
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         // Инициализация
         function init() {
+            // Инициализация Telegram WebApp
+            if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+            }
+            
             loadStations();
+            loadThemes();
             setupEventListeners();
+            loadSavedTheme();
         }
 
-        // Загрузка станций в select
+        // Загрузка станций
         function loadStations() {
             stationSelect.innerHTML = '<option value="" disabled selected>Выберите станцию</option>';
             
@@ -131,6 +346,76 @@
                 option.dataset.station = JSON.stringify(station);
                 stationSelect.appendChild(option);
             });
+        }
+
+        // Загрузка тем
+        function loadThemes() {
+            themesGrid.innerHTML = '';
+            
+            themes.forEach(theme => {
+                const button = document.createElement('button');
+                button.className = 'theme-btn';
+                button.textContent = theme.name;
+                button.title = theme.description;
+                button.onclick = () => changeTheme(theme.id);
+                
+                if (theme.id === currentTheme) {
+                    button.classList.add('active');
+                }
+                
+                themesGrid.appendChild(button);
+            });
+        }
+
+        // Смена темы
+        function changeTheme(themeId) {
+            const theme = themes.find(t => t.id === themeId);
+            if (!theme) return;
+
+            currentTheme = themeId;
+            
+            // Обновляем активную кнопку
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            if (theme.video) {
+                // Видео тема
+                document.body.classList.remove('theme-telegram');
+                video.style.display = 'block';
+                
+                // Плавная смена видео
+                video.style.opacity = '0';
+                setTimeout(() => {
+                    video.src = `https://nikitataflowny-create.github.io/tg-lofi-radio/${theme.video}`;
+                    video.style.opacity = '1';
+                    video.play().catch(e => console.log('Video autoplay failed:', e));
+                }, 200);
+            } else {
+                // Telegram цвета
+                video.style.opacity = '0';
+                setTimeout(() => {
+                    video.style.display = 'none';
+                    document.body.classList.add('theme-telegram');
+                }, 200);
+            }
+
+            // Сохраняем выбор
+            localStorage.setItem('lofi-theme', themeId);
+        }
+
+        // Загрузка сохраненной темы
+        function loadSavedTheme() {
+            const savedTheme = localStorage.getItem('lofi-theme');
+            if (savedTheme && themes.find(t => t.id === savedTheme)) {
+                // Находим кнопку темы и кликаем на неё
+                const themeButton = Array.from(document.querySelectorAll('.theme-btn'))
+                    .find(btn => btn.textContent === themes.find(t => t.id === savedTheme).name);
+                if (themeButton) {
+                    themeButton.click();
+                }
+            }
         }
 
         // Настройка обработчиков событий
