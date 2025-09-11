@@ -478,16 +478,16 @@
    </div>
 
    <script>
-       // Менеджер проверки подписки с ДИНАМИЧЕСКИМ API URL
+       // Менеджер проверки подписки с динамическим API URL
        class SubscriptionManager {
            constructor() {
-               this.apiUrl = this.getApiUrl(); // ИЗМЕНЕНО: динамический URL
+               this.apiUrl = this.getApiUrl();
                this.userId = null;
                this.hasAccess = false;
            }
 
            getApiUrl() {
-               // НОВОЕ: автоматическое определение API URL
+               // Автоматическое определение API URL
                const hostname = window.location.hostname;
                const protocol = window.location.protocol;
                
@@ -507,7 +507,7 @@
            }
 
            async init() {
-               console.log('🔗 Using API URL:', this.apiUrl); // НОВОЕ: показываем какой URL используется
+               console.log('🔗 Using API URL:', this.apiUrl);
                
                // Получаем данные пользователя из Telegram
                if (window.Telegram && window.Telegram.WebApp) {
@@ -566,18 +566,18 @@
                } catch (error) {
                    console.error('❌ Error checking subscription:', error);
                    
-                   // УЛУЧШЕННАЯ обработка ошибок
+                   // Улучшенная обработка ошибок
                    if (error.name === 'TypeError' && error.message.includes('fetch')) {
                        console.error('🌐 Network error - API server unavailable');
-                       this.showLimitedAccess(); // ИЗМЕНЕНО: временный доступ вместо блокировки
+                       this.showLimitedAccess();
                    } else {
-                       console.log('🔄 API error, showing limited access mode');
-                       this.showLimitedAccess(); // ИЗМЕНЕНО: временный доступ при ошибках API
+                       console.log('📄 API error, showing limited access mode');
+                       this.showLimitedAccess();
                    }
                }
            }
            
-           // НОВОЕ: показать ограниченный доступ при проблемах с API
+           // Показать ограниченный доступ при проблемах с API
            showLimitedAccess() {
                console.log('🎵 Showing limited access mode');
                this.hasAccess = true;
@@ -695,40 +695,6 @@
            }
        ];
 
-       // Конфигурация станций
-       const stations = [
-           {
-               id: 1,
-               name: "Beats",
-               url: "https://stream.laut.fm/lofi"
-           },
-           {
-               id: 2,
-               name: "24/7",
-               url: "https://ec3.yesstreaming.net:3755/stream"
-           },
-           {
-               id: 3,
-               name: "Chill",
-               url: "https://chill.radioca.st/stream"
-           },
-           {
-               id: 4,
-               name: "ChillOut",
-               url: "https://stream.laut.fm/chillout"
-           },
-           {
-               id: 5,
-               name: "Live",
-               url: "https://live.lofiradio.ru/lofi_mp3_128"
-           },
-           {
-               id: 6,
-               name: "LoF",
-               url: "https://play.lofiradio.ru:8000/mp3_320"
-           }
-       ];
-
        // Элементы DOM
        const video = document.getElementById('bg-video');
        const audio = document.getElementById('audio');
@@ -744,6 +710,63 @@
        let isPlaying = false;
        let subscriptionManager;
 
+       // НОВАЯ ФУНКЦИЯ: Динамическая загрузка станций из API
+       async function loadStationsFromAPI() {
+           try {
+               const apiUrl = subscriptionManager.apiUrl.replace('/check-subscription', '/stations');
+               console.log('📻 Loading stations from:', apiUrl);
+               
+               const response = await fetch(apiUrl, {
+                   method: 'GET',
+                   headers: {
+                       'Content-Type': 'application/json',
+                   },
+                   mode: 'cors',
+                   cache: 'no-cache'
+               });
+               
+               if (response.ok) {
+                   const data = await response.json();
+                   console.log('📻 Загружено станций из API:', data.stations.length);
+                   console.log('📊 Всего станций:', data.total_all, 'Активных:', data.total_active);
+                   return data.stations;
+               } else {
+                   console.log('⚠️ API ответил с ошибкой:', response.status);
+               }
+           } catch (error) {
+               console.log('⚠️ Не удалось загрузить станции из API:', error.message);
+           }
+           
+           // Возвращаем статичные станции как fallback
+           console.log('📻 Используем статичные станции как fallback');
+           return [
+               { id: 1, name: "Beats", url: "https://stream.laut.fm/lofi" },
+               { id: 2, name: "24/7", url: "https://ec3.yesstreaming.net:3755/stream" },
+               { id: 3, name: "Chill", url: "https://chill.radioca.st/stream" },
+               { id: 4, name: "ChillOut", url: "https://stream.laut.fm/chillout" },
+               { id: 5, name: "Live", url: "https://live.lofiradio.ru/lofi_mp3_128" },
+               { id: 6, name: "LoF", url: "https://play.lofiradio.ru:8000/mp3_320" }
+           ];
+       }
+
+       // ОБНОВЛЕННАЯ ФУНКЦИЯ: Загрузка станций
+       async function loadStations() {
+           // Загружаем станции динамически из API
+           const dynamicStations = await loadStationsFromAPI();
+           
+           stationSelect.innerHTML = '<option value="" disabled selected>Выберите станцию</option>';
+           
+           dynamicStations.forEach(station => {
+               const option = document.createElement('option');
+               option.value = station.id;
+               option.textContent = station.name;
+               option.dataset.station = JSON.stringify(station);
+               stationSelect.appendChild(option);
+           });
+           
+           console.log(`📻 Загружено ${dynamicStations.length} станций в селектор`);
+       }
+
        // Инициализация
        async function init() {
            if (window.Telegram?.WebApp) {
@@ -756,23 +779,11 @@
            await subscriptionManager.init();
 
            if (subscriptionManager.hasAccess) {
-               loadStations();
+               await loadStations(); // ИЗМЕНЕНО: используем динамическую загрузку
                loadThemes();
                setupEventListeners();
                loadSavedTheme();
            }
-       }
-
-       function loadStations() {
-           stationSelect.innerHTML = '<option value="" disabled selected>Выберите станцию</option>';
-           
-           stations.forEach(station => {
-               const option = document.createElement('option');
-               option.value = station.id;
-               option.textContent = station.name;
-               option.dataset.station = JSON.stringify(station);
-               stationSelect.appendChild(option);
-           });
        }
 
        function loadThemes() {
